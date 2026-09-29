@@ -1023,9 +1023,12 @@ local function collectRecipeOutputs()
         for i = 0, recipes:size() - 1 do
             local recipeOutputs = recipes:get(i):getOutputs()
             for j = 0, recipeOutputs:size() - 1 do
-                local items = recipeOutputs:get(j):getPossibleResultItems()
-                for n = 0, items:size() - 1 do
-                    outputs[items:get(n):getFullName()] = true
+                local output = recipeOutputs:get(j)
+                if output:getResourceType() == ResourceType.Item then
+                    local items = output:getPossibleResultItems()
+                    for n = 0, items:size() - 1 do
+                        outputs[items:get(n):getFullName()] = true
+                    end
                 end
             end
         end
@@ -1043,7 +1046,8 @@ end
 
 -- Alternate wear variants (ClothingItemExtra, e.g. a sheath worn on the back or on
 -- the thigh) are separate item types that only exist by swapping from the other
--- variant, so they share the rarity of the variant that has data.
+-- variant, so they share the effective rarity (overrides included) of the variant
+-- that has data.
 local function propagateToWearVariants()
     local added = 0
     local items = getScriptManager():getAllItems()
@@ -1051,7 +1055,7 @@ local function propagateToWearVariants()
         local addedThisPass = 0
         for i = 0, items:size() - 1 do
             local script = items:get(i)
-            local data = ItemRarityUI.itemRarities[script:getFullName()]
+            local data = ItemRarityUI.getRarityData(script:getFullName())
             local extras = data and script:getClothingItemExtra()
             if extras then
                 for j = 0, extras:size() - 1 do
